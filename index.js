@@ -8,6 +8,13 @@ function updateManaDisplay(player) {
   manaDisplay.textContent = `Mana: ${player.mana}`;
 }
 
+function showLogsInFront(log) {
+  const logs = document.getElementById('logs');
+  const li = document.createElement('li');
+  li.textContent = log;
+  logs.appendChild(li);
+}
+
 class Character {
   constructor(name, health, damage, experience = 0) {
     this.name = name;
@@ -20,8 +27,6 @@ class Character {
     return this.damage * (0.8 + Math.random() * 0.4);
   }
 
-
-
   takeDamage(damage) {
     this.health -= damage;
   }
@@ -31,7 +36,6 @@ class Character {
   }
 }
 
-// Classe Player
 class Player extends Character {
   constructor(name, health, damage, mana, specialDamage) {
     super(name, health, damage);
@@ -47,12 +51,13 @@ class Player extends Character {
   }
 
   useSpecial() {
-    if (this.mana >= 10) {
+    if (this.mana >= 10 && this.isAlive() && this.specialDamage > 0) {
       this.mana -= 10;
-      alert(`${this.name} utilise son attaque spéciale!`);
+      updateManaDisplay(this);
+      showLogsInFront(`${this.name} utilise son attaque spéciale!`);
       return this.specialDamage * (0.8 + Math.random() * 0.4);
     } else {
-      console.log(`${this.name} n'a pas ou plus mana!`);
+      showLogsInFront(`${this.name} n'a pas ou plus de mana! Il fait une attaque normal à la place.`);
       return this.attack();
     }
   }
@@ -69,18 +74,17 @@ class Player extends Character {
     this.health += 20;
     this.damage += 5;
     this.specialDamage += 5;
-    console.log(`${this.name} monte au niveau ${this.level}!`);
+    showLogsInFront(`${this.name} monte au niveau ${this.level}!`);
+    updateHealthDisplay(this);
   }
 }
 
-// Classe Monster
 class Monster extends Character {
   constructor(name, health, damage, experience) {
     super(name, health, damage, experience);
   }
 }
 
-// Classe Game
 class Game {
   constructor(players, monsters) {
     this.players = players;
@@ -102,7 +106,7 @@ class Game {
 
   playerTurn(action) {
     if (Math.random() < 0.1) {
-      console.log(`${this.currentPlayer.name} a fait un échec critique!`);
+      showLogsInFront(`${this.currentPlayer.name} a fait un échec critique!`);
       return;
     }
 
@@ -111,14 +115,17 @@ class Game {
       damage = this.currentPlayer.attack();
     } else if (action === 'special') {
       damage = this.currentPlayer.useSpecial();
+    } else if (action === 'heal') {
+      this.currentPlayer.health += 30;
+      updateHealthDisplay(this.currentPlayer);
+      showLogsInFront(`${this.currentPlayer.name} se soigne de 20 points de santé.`);
     }
 
     this.currentMonster.takeDamage(damage);
-    console.log(`${this.currentPlayer.name} inflige ${damage.toFixed(
-      2)} dégâts à ${this.currentMonster.name}.`);
+    showLogsInFront(`${this.currentPlayer.name} inflige ${damage.toFixed(2)} dégâts à ${this.currentMonster.name}.`);
 
     if (!this.currentMonster.isAlive()) {
-      console.log(`${this.currentMonster.name} est mort!`);
+      showLogsInFront(`${this.currentMonster.name} est mort!`);
       this.currentPlayer.gainExperience(this.currentMonster.experience);
       this.monstersKilled++;
       this.currentMonster = this.getRandomMonster();
@@ -129,28 +136,24 @@ class Game {
 
   monsterTurn() {
     if (Math.random() < 0.1) {
-      console.log(`${this.currentMonster.name} a fait un échec critique!`);
+      showLogsInFront(`${this.currentMonster.name} a fait un échec critique!`);
       return;
     }
 
     const damage = this.currentMonster.attack();
     this.currentPlayer.takeDamage(damage);
-    console.log(`${this.currentMonster.name} inflige ${damage.toFixed(
-      2)} dégâts à ${this.currentPlayer.name}.`);
+    showLogsInFront(`${this.currentMonster.name} inflige ${damage.toFixed(2)} dégâts à ${this.currentPlayer.name}.`);
 
     if (!this.currentPlayer.isAlive()) {
-      console.log(`${this.currentPlayer.name} est mort! Fin du jeu.`);
-      process.exit();
+      showLogsInFront(`${this.currentPlayer.name} est mort! Fin du jeu.`);
+      document.getElementById('attack').disabled = true;
+      document.getElementById('heal').disabled = true;
+      document.getElementById('magic').disabled = true;
     }
   }
 
   start() {
-    console.log(
-      `Le jeu commence avec ${this.currentPlayer.name} contre ${this.currentMonster.name}.`);
-    while (this.currentPlayer.isAlive()) {
-      const action = Math.random() < 0.5 ? 'attack' : 'special';
-      this.playerTurn(action);
-    }
+    showLogsInFront(`Le jeu commence avec ${this.currentPlayer.name} contre ${this.currentMonster.name}.`);
   }
 }
 
@@ -178,4 +181,17 @@ document.getElementById('start-form').addEventListener('submit', function(event)
 
   const game = new Game([selectedPlayer], monsters);
   game.start();
+
+  document.getElementById('attack').addEventListener('click', function() {
+    game.playerTurn('attack');
+  });
+
+  document.getElementById('heal').addEventListener('click', function() {
+    game.playerTurn('heal');
+  });
+
+  document.getElementById('magic').addEventListener('click', function() {
+    game.playerTurn('special');
+  });
 });
+
