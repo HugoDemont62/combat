@@ -1,12 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Titre</title>
+    <title>Jeu</title>
     <link rel="stylesheet" href="//css">
-    <meta name="title" content="titre">
+    <meta name="title" content="Jeu">
 </head>
 <body>
+<form id="start-form">
+    <label for="pseudo">Pseudo:</label>
+    <input type="text" id="pseudo" name="pseudo" required>
+    <label for="character">Choisissez un personnage:</label>
+    <select id="character" name="character">
+        <option value="Guerrier">Guerrier</option>
+        <option value="Magicien">Magicien</option>
+    </select>
+    <button type="submit">Commencer le jeu</button>
+</form>
+<div id="player-health">
+    Santé: 100
+</div>
+<div id="player-mana">
+    mana: 100
+</div>
+<div id="logs">
+    <ul>
+        <li>Voici ce qu'il ce passe :</li>
+    </ul>
+</div>
 <script src="index.js"></script>
 </body>
 </html>

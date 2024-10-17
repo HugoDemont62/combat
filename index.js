@@ -1,4 +1,13 @@
-// Classe Character
+function updateHealthDisplay(player) {
+  const healthDisplay = document.getElementById('player-health');
+  healthDisplay.textContent = `Santé: ${player.health}`;
+}
+
+function updateManaDisplay(player) {
+  const manaDisplay = document.getElementById('player-mana');
+  manaDisplay.textContent = `Mana: ${player.mana}`;
+}
+
 class Character {
   constructor(name, health, damage, experience = 0) {
     this.name = name;
@@ -10,6 +19,8 @@ class Character {
   attack() {
     return this.damage * (0.8 + Math.random() * 0.4);
   }
+
+
 
   takeDamage(damage) {
     this.health -= damage;
@@ -30,13 +41,19 @@ class Player extends Character {
     this.experience = 0;
   }
 
+  takeDamage(damage) {
+    super.takeDamage(damage);
+    updateHealthDisplay(this);
+  }
+
   useSpecial() {
     if (this.mana >= 10) {
       this.mana -= 10;
-      return this.specialDamage * (0.8 + Math.random() * 0.4); // Dégâts spéciaux aléatoires ±20%
+      alert(`${this.name} utilise son attaque spéciale!`);
+      return this.specialDamage * (0.8 + Math.random() * 0.4);
     } else {
-      console.log(`${this.name} n'a pas assez de mana!`);
-      return 0;
+      console.log(`${this.name} n'a pas ou plus mana!`);
+      return this.attack();
     }
   }
 
@@ -131,23 +148,34 @@ class Game {
     console.log(
       `Le jeu commence avec ${this.currentPlayer.name} contre ${this.currentMonster.name}.`);
     while (this.currentPlayer.isAlive()) {
-      this.playerTurn('attack');
+      const action = Math.random() < 0.5 ? 'attack' : 'special';
+      this.playerTurn(action);
     }
   }
 }
 
-// Initialisation des joueurs et des monstres
-const players = [
-  new Player('Guerrier', 100, 15, 30, 25),
-  new Player('Magicien', 80, 10, 50, 55),
-];
+document.getElementById('start-form').addEventListener('submit', function(event) {
+  event.preventDefault();
 
-const monsters = [
-  {name: 'Gobelin', health: 30, damage: 5, experience: 20},
-  {name: 'Orc', health: 50, damage: 10, experience: 30},
-  {name: 'Dragon', health: 100, damage: 20, experience: 50},
-];
+  const pseudo = document.getElementById('pseudo').value;
+  const characterType = document.getElementById('character').value;
 
-// Démarrage du jeu
-const game = new Game(players, monsters);
-game.start();
+  let selectedPlayer;
+  if (characterType === 'Guerrier') {
+    selectedPlayer = new Player(pseudo, 100, 15, 0, 0);
+  } else if (characterType === 'Magicien') {
+    selectedPlayer = new Player(pseudo, 80, 10, 50, 55);
+  }
+
+  updateHealthDisplay(selectedPlayer);
+  updateManaDisplay(selectedPlayer);
+
+  const monsters = [
+    {name: 'Gobelin', health: 30, damage: 5, experience: 20},
+    {name: 'Orc', health: 50, damage: 10, experience: 30},
+    {name: 'Dragon', health: 100, damage: 20, experience: 50},
+  ];
+
+  const game = new Game([selectedPlayer], monsters);
+  game.start();
+});
